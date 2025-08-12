@@ -11,10 +11,10 @@ class UserController extends Controller
 {
      public function index()
     {
-        $users = User::all();
-
+        $users = User::orderBy('id')->get(); // Urut berdasarkan id dari terkecil
         return response()->json($users);
     }
+
     public function store(Request $request)
 {
     $request->validate([
