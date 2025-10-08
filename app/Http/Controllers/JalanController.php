@@ -8,124 +8,179 @@ use Illuminate\Support\Facades\DB;
 
 class JalanController extends Controller
 {
-    public function index(Request $request)
+    // Ambil semua data jalan
+    public function index()
     {
-        $query = Jalan::with('uploadPeta');
+        $data = Jalan::select(
+                'id_jalan',
+                'kode_unik',
+                'kondisi',
+                'lebar',
+                DB::raw("encode(ST_AsBinary(lokasi), 'hex') as lokasi_wkb"),
+                DB::raw("ST_AsGeoJSON(lokasi)::json as lokasi_geojson"),
+                'created_at'
+            )
+            ->orderBy('id_jalan', 'asc') // urutkan dari terkecil
+            ->get();
 
-        if ($request->has('bulan') || $request->has('tahun')) {
-            $query->whereHas('uploadPeta', function ($q) use ($request) {
-                if ($request->filled('bulan')) {
-                    $q->whereMonth('tanggal_upload', $request->bulan);
-                }
-                if ($request->filled('tahun')) {
-                    $q->whereYear('tanggal_upload', $request->tahun);
-                }
-            });
-        }
-
-        // ✅ Tambahkan urutan berdasarkan ID
-        $jalanList = $query->orderBy('id_jalan')->get();
-
-        foreach ($jalanList as $jalan) {
-            $raw = DB::table('jalan')
-                ->where('id_jalan', $jalan->id_jalan)
-                ->selectRaw('ST_AsGeoJSON(lokasi) as geojson')
-                ->first();
-
-            $jalan->lokasi_geojson = json_decode($raw->geojson);
-        }
-
-        return response()->json($jalanList);
+        return response()->json($data);
     }
 
+    // Ambil data berdasarkan tanggal
+    public function getByDate(Request $request)
+    {
+        $tanggal = $request->query('tanggal');
 
+        if (!$tanggal) {
+            return response()->json([
+                'message' => 'Parameter tanggal wajib diisi (format: YYYY-MM-DD)'
+            ], 400);
+        }
+
+        $data = Jalan::select(
+                'id_jalan',
+                'kode_unik',
+                'kondisi',
+                'lebar',
+                DB::raw("encode(ST_AsBinary(lokasi), 'hex') as lokasi_wkb"),
+                DB::raw("ST_AsGeoJSON(lokasi)::json as lokasi_geojson"),
+                'created_at'
+            )
+            ->whereDate('created_at', '<=', $tanggal)
+            ->orderBy('kode_unik')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('kode_unik')
+            ->values();
+
+        return response()->json($data);
+    }
+
+    // Simpan data jalan baru
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'lokasi' => 'required', // GeoJSON
-            'kondisi' => 'nullable|string',
-            'lebar' => 'nullable|integer',
-            'id_peta' => 'required|exists:upload_peta,id_peta'
+        $request->validate([
+            'kode_unik' => 'required|string|max:50',
+            'kondisi'   => 'required|string|max:255',
+            'lebar'     => 'required|numeric',
+            'lokasi'    => 'nullable|string',
+            'created_at'=> 'nullable|date'
         ]);
 
         $jalan = new Jalan();
-        $jalan->kondisi = $validated['kondisi'] ?? null;
-        $jalan->lebar = $validated['lebar'] ?? null;
-        $jalan->id_peta = $validated['id_peta'];
+        $jalan->kode_unik = $request->kode_unik;
+        $jalan->kondisi   = $request->kondisi;
+        $jalan->lebar     = $request->lebar;
 
-        $geojson = json_encode([
-            "type" => "MultiLineString",
-            "coordinates" => $validated['lokasi']
-        ]);
+        // Proses lokasi
+        if ($request->filled('lokasi')) {
+            // Jika formatnya hex (WKB)
+            if (ctype_xdigit($request->lokasi)) {
+                $jalan->lokasi = DB::raw("ST_SetSRID(ST_GeomFromWKB(decode('{$request->lokasi}', 'hex')), 4326)");
+            } else {
+                // Anggap format WKT
+                $jalan->lokasi = DB::raw("ST_GeomFromText('{$request->lokasi}', 4326)");
+            }
+        } else {
+            // Ambil dari data lama
+            $lokasiLama = DB::table('jalan')
+                ->where('kode_unik', $request->kode_unik)
+                ->orderByDesc('created_at')
+                ->value(DB::raw('ST_AsText(lokasi)'));
 
-        $jalan->lokasi = DB::raw("ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON('$geojson'), 32748), 4326)");
+            if ($lokasiLama) {
+                $jalan->lokasi = DB::raw("ST_GeomFromText('{$lokasiLama}', 4326)");
+            } else {
+                return response()->json([
+                    'message' => 'Lokasi wajib diisi, atau harus sudah ada data lama dengan kode_unik ini.'
+                ], 422);
+            }
+        }
+
+        if ($request->filled('created_at')) {
+            $jalan->created_at = $request->created_at;
+        }
+
         $jalan->save();
 
-        $jalan->refresh(); // <=== ini kunci agar lokasi dapat value beneran
+        // Ambil ulang data lengkap
+        $data = Jalan::select(
+            'id_jalan',
+            'kode_unik',
+            'kondisi',
+            'lebar',
+            DB::raw("encode(ST_AsBinary(lokasi), 'hex') as lokasi_wkb"),
+            DB::raw("ST_AsGeoJSON(lokasi)::json as lokasi_geojson"),
+            'created_at'
+        )->find($jalan->id_jalan);
 
-        $geo = DB::table('jalan')
-            ->where('id_jalan', $jalan->id_jalan)
-            ->selectRaw('ST_AsGeoJSON(lokasi) as geojson, lokasi')
-            ->first();
-
-        $jalan->lokasi_geojson = json_decode($geo->geojson);
-        $jalan->lokasi = $geo->lokasi;
-
-        return response()->json($jalan, 201);
+        return response()->json([
+            'message' => 'Data jalan berhasil disimpan',
+            'data' => $data
+        ], 201);
     }
 
-
-    public function show($id)
-    {
-        $jalan = Jalan::with('uploadPeta')->findOrFail($id);
-
-        $geo = DB::table('jalan')
-            ->where('id_jalan', $jalan->id_jalan)
-            ->selectRaw('ST_AsGeoJSON(lokasi) as geojson')
-            ->first();
-
-        $jalan->lokasi_geojson = json_decode($geo->geojson);
-
-        return response()->json($jalan);
-    }
-
+    // Update data jalan (partial update)
     public function update(Request $request, $id)
     {
         $jalan = Jalan::findOrFail($id);
 
-        $validated = $request->validate([
-            'lokasi' => 'sometimes',
-            'kondisi' => 'nullable|string',
-            'lebar' => 'nullable|integer',
-            'id_peta' => 'nullable|exists:upload_peta,id_peta'
+        // Validasi optional (semua tidak required)
+        $request->validate([
+            'kode_unik' => 'sometimes|string|max:50',
+            'kondisi'   => 'sometimes|string|max:255',
+            'lebar'     => 'sometimes|numeric',
+            'lokasi'    => 'sometimes|string',
+            'created_at'=> 'sometimes|date'
         ]);
 
-        if (isset($validated['lokasi'])) {
-            $geojson = json_encode([
-                'type' => 'MultiLineString',
-                'coordinates' => $validated['lokasi']
-            ]);
-            $jalan->lokasi = DB::raw("ST_SetSRID(ST_GeomFromGeoJSON('$geojson'), 4326)");
-            unset($validated['lokasi']);
+        // Update hanya field yang dikirim
+        if ($request->filled('kode_unik')) {
+            $jalan->kode_unik = $request->kode_unik;
+        }
+        if ($request->filled('kondisi')) {
+            $jalan->kondisi = $request->kondisi;
+        }
+        if ($request->filled('lebar')) {
+            $jalan->lebar = $request->lebar;
+        }
+        if ($request->filled('lokasi')) {
+            if (ctype_xdigit($request->lokasi)) {
+                $jalan->lokasi = DB::raw("ST_SetSRID(ST_GeomFromWKB(decode('{$request->lokasi}', 'hex')), 4326)");
+            } else {
+                $jalan->lokasi = DB::raw("ST_GeomFromText('{$request->lokasi}', 4326)");
+            }
+        }
+        if ($request->filled('created_at')) {
+            $jalan->created_at = $request->created_at;
         }
 
-        $jalan->fill($validated);
         $jalan->save();
 
-        $geo = DB::table('jalan')
-            ->where('id_jalan', $jalan->id_jalan)
-            ->selectRaw('ST_AsGeoJSON(lokasi) as geojson')
-            ->first();
+        $data = Jalan::select(
+            'id_jalan',
+            'kode_unik',
+            'kondisi',
+            'lebar',
+            DB::raw("encode(ST_AsBinary(lokasi), 'hex') as lokasi_wkb"),
+            DB::raw("ST_AsGeoJSON(lokasi)::json as lokasi_geojson"),
+            'created_at'
+        )->find($jalan->id_jalan);
 
-        $jalan->lokasi_geojson = json_decode($geo->geojson);
-
-        return response()->json($jalan);
+        return response()->json([
+            'message' => 'Data jalan berhasil diupdate',
+            'data' => $data
+        ]);
     }
 
+    // Hapus data jalan
     public function destroy($id)
     {
         $jalan = Jalan::findOrFail($id);
         $jalan->delete();
-        return response()->json(['message' => 'Data jalan dihapus.']);
+
+        return response()->json([
+            'message' => 'Data jalan berhasil dihapus'
+        ]);
     }
 }

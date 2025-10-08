@@ -8,14 +8,12 @@ class Jalan extends Model
 {
     protected $table = 'jalan';
     protected $primaryKey = 'id_jalan';
-    public $timestamps = false;
+    public $timestamps = false; // created_at di-handle DB
 
     protected $fillable = [
-        'lokasi', 'kondisi', 'lebar', 'id_peta'
+        'lokasi',
+        'kondisi',
+        'lebar',
+        'kode_unik'
     ];
-
-    public function uploadPeta()
-    {
-        return $this->belongsTo(UploadPeta::class, 'id_peta', 'id_peta');
-    }
 }

@@ -23,3 +23,12 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Izinkan CORS untuk semua file di storage
+<IfModule mod_headers.c>
+    <FilesMatch "\.(tif|tiff|jpg|jpeg|png|gif|webp|svg|js|css|json|geojson)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, OPTIONS"
+        Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    </FilesMatch>
+</IfModule>

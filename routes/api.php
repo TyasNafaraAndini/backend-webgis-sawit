@@ -10,6 +10,8 @@ use App\Http\Controllers\IrigasiController;
 use App\Http\Controllers\JalanController;
 use App\Http\Controllers\TransportasiController;
 use App\Http\Controllers\LahanController;
+use App\Http\Controllers\ZonaController;
+use App\Http\Controllers\PohonController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,17 +46,20 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Route Upload Peta
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/upload_peta', [UploadPetaController::class, 'index']);
-    Route::get('/upload_peta/{id}', [UploadPetaController::class, 'show']);
-    Route::post('/upload_peta', [UploadPetaController::class, 'store']);
-    Route::put('/upload_peta/{id}', [UploadPetaController::class, 'update']);
-    Route::delete('/upload_peta/{id}', [UploadPetaController::class, 'destroy']);
+Route::middleware(['auth:sanctum'])->prefix('upload_peta')->group(function () {
+    Route::get('/', [UploadPetaController::class, 'index']);
+    Route::get('/by-date', [UploadPetaController::class, 'getByDate']);
+    Route::get('/{id}', [UploadPetaController::class, 'show']);
+    Route::post('/', [UploadPetaController::class, 'store']);
+    Route::put('/{id}', [UploadPetaController::class, 'update']);
+    Route::delete('/{id}', [UploadPetaController::class, 'destroy']);
 });
+
 
 // Route Blok
 Route::prefix('blok')->group(function () {
-    Route::get('/', [BlokController::class, 'index']);         // list + filter
+    Route::get('/', [BlokController::class, 'index']); 
+    Route::get('/by-date', [BlokController::class, 'getByDate']);        // list + filter
     Route::post('/', [BlokController::class, 'store']);        // tambah
     Route::get('/{id}', [BlokController::class, 'show']);      // detail
     Route::put('/{id}', [BlokController::class, 'update']);    // update
@@ -73,6 +78,7 @@ Route::prefix('alat')->group(function () {
 // Route Irigasi
 Route::prefix('irigasi')->group(function () {
     Route::get('/', [IrigasiController::class, 'index']);       // list + filter
+    Route::get('/by-date', [IrigasiController::class, 'getByDate']);
     Route::post('/', [IrigasiController::class, 'store']);      // tambah
     Route::get('/{id}', [IrigasiController::class, 'show']);    // detail
     Route::put('/{id}', [IrigasiController::class, 'update']);  // update
@@ -83,6 +89,7 @@ Route::prefix('irigasi')->group(function () {
 
 Route::prefix('jalan')->group(function () {
     Route::get('/', [JalanController::class, 'index']);         // list + filter
+    Route::get('/by-date', [JalanController::class, 'getByDate']);
     Route::post('/', [JalanController::class, 'store']);        // tambah
     Route::get('/{id}', [JalanController::class, 'show']);      // detail
     Route::put('/{id}', [JalanController::class, 'update']);    // update
@@ -105,6 +112,25 @@ Route::prefix('lahan')->group(function () {
     Route::get('/{id}', [LahanController::class, 'show']);    // Detail data lahan berdasarkan ID
     Route::put('/{id}', [LahanController::class, 'update']);  // Update data lahan
     Route::delete('/{id}', [LahanController::class, 'destroy']); // Hapus data lahan
+});
+
+// Route Zona
+Route::prefix('zona')->group(function () {
+    Route::get('/', [ZonaController::class, 'index']);           // Ambil semua data zona
+    Route::get('/by-date', [ZonaController::class, 'getByDate']); // Ambil data versi terakhir per kode_unik sampai tanggal tertentu
+    Route::post('/', [ZonaController::class, 'store']);          // Tambah data zona
+    Route::get('/{id}', [ZonaController::class, 'show']);        // Detail zona berdasarkan ID
+    Route::put('/{id}', [ZonaController::class, 'update']);      // Update zona
+    Route::delete('/{id}', [ZonaController::class, 'destroy']);  // Hapus zona
+});
+
+// Route Pohon
+Route::prefix('pohon')->group(function () {
+    Route::get('/', [PohonController::class, 'index']);      // Ambil semua pohon
+    Route::post('/', [PohonController::class, 'store']);     // Tambah pohon baru
+    Route::get('/{id}', [PohonController::class, 'show']);   // Detail pohon berdasarkan ID
+    Route::put('/{id}', [PohonController::class, 'update']); // Update pohon
+    Route::delete('/{id}', [PohonController::class, 'destroy']); // Hapus pohon
 });
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
