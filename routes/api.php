@@ -126,11 +126,11 @@ Route::prefix('zona')->group(function () {
 
 // Route Pohon
 Route::prefix('pohon')->group(function () {
-    Route::get('/', [PohonController::class, 'index']);      // Ambil semua pohon
-    Route::post('/', [PohonController::class, 'store']);     // Tambah pohon baru
-    Route::get('/{id}', [PohonController::class, 'show']);   // Detail pohon berdasarkan ID
-    Route::put('/{id}', [PohonController::class, 'update']); // Update pohon
-    Route::delete('/{id}', [PohonController::class, 'destroy']); // Hapus pohon
+    Route::get('/', [PohonController::class, 'index']);      
+    Route::post('/', [PohonController::class, 'store']);     
+    Route::get('/{id}', [PohonController::class, 'show']);   
+    Route::put('/{id}', [PohonController::class, 'update']); 
+    Route::delete('/{id}', [PohonController::class, 'destroy']); 
 });
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

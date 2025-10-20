@@ -16,5 +16,6 @@ class Pohon extends Model
     protected $fillable = [
         'lokasi_koordinat',
         'varietas',
+        'zona',
     ];
 }
