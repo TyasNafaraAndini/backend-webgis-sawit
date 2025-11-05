@@ -15,10 +15,13 @@ use App\Http\Controllers\PohonController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', action: [AuthController::class, 'login']);
+// ========================
+// AUTHENTICATION
+// ========================
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
+// ========================
 // Route untuk admin
 Route::middleware(['auth:sanctum', 'isAdmin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
@@ -36,108 +39,118 @@ Route::middleware(['auth:sanctum', 'isStaff'])->get('/staff/dashboard', function
     return response()->json(['message' => 'Halo Staff!']);
 });
 
-
+// ========================
+// PEKERJA
+// ========================
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/pekerja', [PekerjaController::class, 'index']);
-    Route::get('/pekerja/{id}', [PekerjaController::class, 'show']);
-    Route::post('/pekerja', [PekerjaController::class, 'store']);
-    Route::put('/pekerja/{id}', [PekerjaController::class, 'update']);
-    Route::delete('/pekerja/{id}', [PekerjaController::class, 'destroy']);
+    Route::get('/pekerja', [PekerjaController::class, 'index']);         // GET: list pekerja
+    Route::get('/pekerja/{id}', [PekerjaController::class, 'show']);     // GET: detail pekerja
+    Route::post('/pekerja', [PekerjaController::class, 'store']);        // POST: tambah pekerja
+    Route::put('/pekerja/{id}', [PekerjaController::class, 'update']);   // PUT: update pekerja
+    Route::delete('/pekerja/{id}', [PekerjaController::class, 'destroy']); // DELETE: hapus pekerja
 });
 
-// Route Upload Peta
-Route::middleware(['auth:sanctum'])->prefix('upload_peta')->group(function () {
-    Route::get('/', [UploadPetaController::class, 'index']);
-    Route::get('/by-date', [UploadPetaController::class, 'getByDate']);
-    Route::get('/{id}', [UploadPetaController::class, 'show']);
-    Route::post('/', [UploadPetaController::class, 'store']);
-    Route::put('/{id}', [UploadPetaController::class, 'update']);
-    Route::delete('/{id}', [UploadPetaController::class, 'destroy']);
+// ========================
+// UPLOAD PETA
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/upload_peta', [UploadPetaController::class, 'index']);         // GET: list peta
+    Route::get('/upload_peta/by-date', [UploadPetaController::class, 'getByDate']); // GET: filter by date
+    Route::get('/upload_peta/{id}', [UploadPetaController::class, 'show']);     // GET: detail peta
+    Route::post('/upload_peta', [UploadPetaController::class, 'store']);        // POST: tambah peta
+    Route::put('/upload_peta/{id}', [UploadPetaController::class, 'update']);   // PUT: update peta
+    Route::delete('/upload_peta/{id}', [UploadPetaController::class, 'destroy']); // DELETE: hapus peta
 });
 
-
-// Route Blok
-Route::prefix('blok')->group(function () {
-    Route::get('/', [BlokController::class, 'index']); 
-    Route::get('/by-date', [BlokController::class, 'getByDate']);        // list + filter
-    Route::post('/', [BlokController::class, 'store']);        // tambah
-    Route::get('/{id}', [BlokController::class, 'show']);      // detail
-    Route::put('/{id}', [BlokController::class, 'update']);    // update
-    Route::delete('/{id}', [BlokController::class, 'destroy']); // hapus
+// ========================
+// BLOK
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/blok', [BlokController::class, 'index']);                 // GET: list blok
+Route::get('/blok/by-date', [BlokController::class, 'getByDate']);    // GET: filter by date
+Route::get('/blok/{id}', [BlokController::class, 'show']);            // GET: detail blok
+Route::post('/blok', [BlokController::class, 'store']);               // POST: tambah blok
+Route::put('/blok/{id}', [BlokController::class, 'update']);          // PUT: update blok
+Route::delete('/blok/{id}', [BlokController::class, 'destroy']);      // DELETE: hapus blok
 });
 
-// Route Alat
-Route::prefix('alat')->group(function () {
-    Route::get('/', [AlatController::class, 'index']);       // list
-    Route::post('/', [AlatController::class, 'store']);      // tambah
-    Route::get('/{id}', [AlatController::class, 'show']);    // detail
-    Route::put('/{id}', [AlatController::class, 'update']);  // update
-    Route::delete('/{id}', [AlatController::class, 'destroy']); // hapus
+// ========================
+// ALAT
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/alat', [AlatController::class, 'index']);                // GET: list alat
+Route::get('/alat/{id}', [AlatController::class, 'show']);            // GET: detail alat
+Route::post('/alat', [AlatController::class, 'store']);               // POST: tambah alat
+Route::put('/alat/{id}', [AlatController::class, 'update']);          // PUT: update alat
+Route::delete('/alat/{id}', [AlatController::class, 'destroy']);      // DELETE: hapus alat
 });
 
-// Route Irigasi
-Route::prefix('irigasi')->group(function () {
-    Route::get('/', [IrigasiController::class, 'index']);       // list + filter
-    Route::get('/by-date', [IrigasiController::class, 'getByDate']);
-    Route::post('/', [IrigasiController::class, 'store']);      // tambah
-    Route::get('/{id}', [IrigasiController::class, 'show']);    // detail
-    Route::put('/{id}', [IrigasiController::class, 'update']);  // update
-    Route::delete('/{id}', [IrigasiController::class, 'destroy']); // hapus
+// ========================
+// IRIGASI
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/irigasi', [IrigasiController::class, 'index']);          // GET: list irigasi
+Route::get('/irigasi/by-date', [IrigasiController::class, 'getByDate']); // GET: filter by date
+Route::get('/irigasi/{id}', [IrigasiController::class, 'show']);      // GET: detail irigasi
+Route::post('/irigasi', [IrigasiController::class, 'store']);         // POST: tambah irigasi
+Route::put('/irigasi/{id}', [IrigasiController::class, 'update']);    // PUT: update irigasi
+Route::delete('/irigasi/{id}', [IrigasiController::class, 'destroy']); // DELETE: hapus irigasi
 });
 
-// Route Jalan
-
-Route::prefix('jalan')->group(function () {
-    Route::get('/', [JalanController::class, 'index']);         // list + filter
-    Route::get('/by-date', [JalanController::class, 'getByDate']);
-    Route::post('/', [JalanController::class, 'store']);        // tambah
-    Route::get('/{id}', [JalanController::class, 'show']);      // detail
-    Route::put('/{id}', [JalanController::class, 'update']);    // update
-    Route::delete('/{id}', [JalanController::class, 'destroy']); // hapus
+// ========================
+// JALAN
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/jalan', [JalanController::class, 'index']);              // GET: list jalan
+Route::get('/jalan/by-date', [JalanController::class, 'getByDate']);  // GET: filter by date
+Route::get('/jalan/{id}', [JalanController::class, 'show']);          // GET: detail jalan
+Route::post('/jalan', [JalanController::class, 'store']);             // POST: tambah jalan
+Route::put('/jalan/{id}', [JalanController::class, 'update']);        // PUT: update jalan
+Route::delete('/jalan/{id}', [JalanController::class, 'destroy']);    // DELETE: hapus jalan
 });
 
-// Route Transportasi
-Route::prefix('transportasi')->group(function () {
-    Route::get('/', [TransportasiController::class, 'index']);
-    Route::post('/', [TransportasiController::class, 'store']);
-    Route::get('/{id}', [TransportasiController::class, 'show']);
-    Route::put('/{id}', [TransportasiController::class, 'update']);
-    Route::delete('/{id}', [TransportasiController::class, 'destroy']);
+// ========================
+// TRANSPORTASI
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/transportasi', [TransportasiController::class, 'index']);       // GET: list transportasi
+Route::get('/transportasi/{id}', [TransportasiController::class, 'show']);   // GET: detail transportasi
+Route::post('/transportasi', [TransportasiController::class, 'store']);      // POST: tambah transportasi
+Route::put('/transportasi/{id}', [TransportasiController::class, 'update']); // PUT: update transportasi
+Route::delete('/transportasi/{id}', [TransportasiController::class, 'destroy']); // DELETE: hapus transportasi
 });
 
-// Route Lahan
-Route::prefix('lahan')->group(function () {
-    Route::get('/', [LahanController::class, 'index']);       // Ambil semua data lahan
-    Route::post('/', [LahanController::class, 'store']);      // Tambah data lahan
-    Route::get('/{id}', [LahanController::class, 'show']);    // Detail data lahan berdasarkan ID
-    Route::put('/{id}', [LahanController::class, 'update']);  // Update data lahan
-    Route::delete('/{id}', [LahanController::class, 'destroy']); // Hapus data lahan
+// ========================
+// LAHAN
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/lahan', [LahanController::class, 'index']);              // GET: list lahan
+Route::get('/lahan/{id}', [LahanController::class, 'show']);          // GET: detail lahan
+Route::post('/lahan', [LahanController::class, 'store']);             // POST: tambah lahan
+Route::put('/lahan/{id}', [LahanController::class, 'update']);        // PUT: update lahan
+Route::delete('/lahan/{id}', [LahanController::class, 'destroy']);    // DELETE: hapus lahan
 });
 
-// Route Zona
-Route::prefix('zona')->group(function () {
-    Route::get('/', [ZonaController::class, 'index']);           // Ambil semua data zona
-    Route::get('/by-date', [ZonaController::class, 'getByDate']); // Ambil data versi terakhir per kode_unik sampai tanggal tertentu
-    Route::post('/', [ZonaController::class, 'store']);          // Tambah data zona
-    Route::get('/{id}', [ZonaController::class, 'show']);        // Detail zona berdasarkan ID
-    Route::put('/{id}', [ZonaController::class, 'update']);      // Update zona
-    Route::delete('/{id}', [ZonaController::class, 'destroy']);  // Hapus zona
+// ========================
+// ZONA
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/zona', [ZonaController::class, 'index']);                // GET: list zona
+Route::get('/zona/by-date', [ZonaController::class, 'getByDate']);    // GET: filter by date
+Route::get('/zona/{id}', [ZonaController::class, 'show']);            // GET: detail zona
+Route::post('/zona', [ZonaController::class, 'store']);               // POST: tambah zona
+Route::put('/zona/{id}', [ZonaController::class, 'update']);          // PUT: update zona
+Route::delete('/zona/{id}', [ZonaController::class, 'destroy']);      // DELETE: hapus zona
 });
 
-// Route Pohon
-Route::prefix('pohon')->group(function () {
-    Route::get('/', [PohonController::class, 'index']);      
-    Route::post('/', [PohonController::class, 'store']);     
-    Route::get('/{id}', [PohonController::class, 'show']);   
-    Route::put('/{id}', [PohonController::class, 'update']); 
-    Route::delete('/{id}', [PohonController::class, 'destroy']); 
+// ========================
+// POHON
+// ========================
+Route::middleware('auth:sanctum')->group(function () {
+Route::get('/pohon/count', [PohonController::class, 'count']);
+Route::get('/pohon', [PohonController::class, 'index']);              // GET: list pohon
+Route::get('/pohon/{id}', [PohonController::class, 'show']);          // GET: detail pohon
+Route::post('/pohon', [PohonController::class, 'store']);             // POST: tambah pohon
+Route::put('/pohon/{id}', [PohonController::class, 'update']);        // PUT: update pohon
+Route::delete('/pohon/{id}', [PohonController::class, 'destroy']);    // DELETE: hapus pohon
 });
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-// Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-//     $request->user()->currentAccessToken()->delete();
-
-//     return response()->json(['message' => 'Logged out successfully']);
-// });

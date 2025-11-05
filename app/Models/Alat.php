@@ -11,18 +11,7 @@ class Alat extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nama_alat', 'id_blok', 'penggunaan', 'tanggal'
+        'nama_alat',
+        'penggunaan',
     ];
-
-    // Relasi ke blok (many to one)
-    public function blok()
-    {
-        return $this->belongsTo(Blok::class, 'id_blok', 'id_blok');
-    }
-
-    // Relasi ke pekerja (many to many via tabel pivot alat_pekerja)
-    public function pekerja()
-    {
-        return $this->belongsToMany(Pekerja::class, 'alat_pekerja', 'alat_id', 'pekerja_id');
-    }
 }

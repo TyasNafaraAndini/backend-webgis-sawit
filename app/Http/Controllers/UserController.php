@@ -16,25 +16,25 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|string|min:6',
-        'role' => ['required', Rule::in(['admin', 'staff'])], // sesuaikan
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:6',
+            'role' => ['required', Rule::in(['admin', 'staff'])], // sesuaikan
+        ]);
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => $request->role,
-    ]);
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => $request->role,
+        ]);
 
-    return response()->json(['message' => 'User berhasil ditambahkan', 'user' => $user], 201);
-}
+        return response()->json(['message' => 'User berhasil ditambahkan', 'user' => $user], 201);
+    }
 
-public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 

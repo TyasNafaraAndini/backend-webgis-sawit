@@ -20,7 +20,7 @@ class LahanController extends Controller
                 DB::raw("encode(ST_AsBinary(batas), 'hex') as batas"),
                 DB::raw("ST_AsGeoJSON(batas)::json as batas_geojson")
             )
-            ->orderBy('id_lahan', 'asc') // ✅ Ditambahkan untuk mengurutkan
+            ->orderBy('id_lahan', 'asc') 
             ->get();
 
         return response()->json($data);

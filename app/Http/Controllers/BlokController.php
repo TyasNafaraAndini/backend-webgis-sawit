@@ -72,7 +72,6 @@ class BlokController extends Controller
             'id_pekerja'    => 'array',
             'id_pekerja.*'  => 'exists:pekerja,id_pekerja'
         ]);
-
         // Simpan data blok
         $blok = Blok::create([
             'kode_unik'    => $validatedData['kode_unik'],
@@ -81,12 +80,10 @@ class BlokController extends Controller
             'waktu_panen'  => $validatedData['waktu_panen'],
             'lokasi'       => DB::raw("ST_SetSRID(ST_GeomFromWKB(decode('{$validatedData['lokasi']}', 'hex')), 4326)"),
         ]);
-
         // Simpan relasi pekerja
         if (!empty($validatedData['id_pekerja'])) {
             $blok->pekerja()->sync($validatedData['id_pekerja']);
         }
-
         // Ambil kembali data blok dengan pekerja + lokasi
         $blok = Blok::with('pekerja')
             ->select(
@@ -100,7 +97,6 @@ class BlokController extends Controller
                 'created_at'
             )
             ->find($blok->id_blok);
-
         return response()->json($blok, 201);
     }
 
@@ -137,9 +133,7 @@ class BlokController extends Controller
                 'id_pekerja'   => 'array',
                 'id_pekerja.*' => 'exists:pekerja,id_pekerja'
             ]);
-
             $data = [];
-
             if (isset($validated['nama_blok'])) {
                 $data['nama_blok'] = $validated['nama_blok'];
             }

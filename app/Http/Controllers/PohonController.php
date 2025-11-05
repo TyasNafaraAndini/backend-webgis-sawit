@@ -22,12 +22,22 @@ class PohonController extends Controller
 
         // Jika ada parameter zona, filter berdasarkan zona
         if ($request->has('zona') && !empty($request->zona)) {
-            $query->where('zona', $request->zona);
+            $query->whereRaw('LOWER(zona) = ?', [strtolower($request->zona)]);
         }
 
         $data = $query->get();
 
         return response()->json($data);
+    }
+
+    // GET total jumlah pohon
+    public function count()
+    {
+        $total = DB::table('pohon')->count();
+
+        return response()->json([
+            'total_pohon' => $total
+        ]);
     }
 
     // GET detail pohon

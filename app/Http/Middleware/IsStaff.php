@@ -10,8 +10,9 @@ class IsStaff
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()->role !== 'staff') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        // Cek apakah user login dan punya role staff
+        if (! $request->user() || $request->user()->role !== 'staff') {
+            return response()->json(['message' => 'Akses ditolak. Hanya staff yang dapat mengakses.'], 403);
         }
 
         return $next($request);
