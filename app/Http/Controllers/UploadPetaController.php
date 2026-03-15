@@ -39,30 +39,6 @@ class UploadPetaController extends Controller
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
                 $path = $file->store('peta', 'public');
-                $fullPath = storage_path('app/public/' . $path);
-
-                // ✅ Lokasi gdaladdo.exe
-                $gdalPath = "C:\\Program Files\\QGIS 3.36.0\\bin\\gdaladdo.exe";
-
-                // ✅ Buat .ovr
-                $cmd = "\"$gdalPath\" --config USE_RRD NO --config BIGTIFF_OVR YES " 
-                . escapeshellarg($fullPath) . " 2 4 8 16";
-
-                // Logging command ke laravel.log
-                \Log::info("GDAL Command: " . $cmd);
-                
-                exec($cmd, $output, $returnVar);
-
-                // Logging hasil output
-                \Log::info("GDAL Output: " . print_r($output, true));
-                \Log::info("GDAL Return Code: " . $returnVar);
-
-                if ($returnVar !== 0) {
-                    return response()->json([
-                        'message' => 'File berhasil diupload tapi gagal membuat OVR',
-                        'error'   => $output
-                    ], 500);
-                }
 
                 $upload = UploadPeta::create([
                     'nama_peta'   => $request->nama_peta,
@@ -75,9 +51,8 @@ class UploadPetaController extends Controller
                 ]);
 
                 return response()->json([
-                    'message' => 'File berhasil diupload & OVR dibuat',
-                    'data'    => $upload,
-                    'ovr'     => $path . '.ovr'
+                    'message' => 'File berhasil diupload',
+                    'data'    => $upload
                 ], 201);
             }
 
@@ -120,13 +95,9 @@ class UploadPetaController extends Controller
         try {
             if ($request->hasFile('file')) {
                 if ($peta->link_peta) {
-                    // hapus file lama + ovr
                     $oldPath = str_replace(asset('storage') . '/', '', $peta->link_peta);
                     if (Storage::disk('public')->exists($oldPath)) {
                         Storage::disk('public')->delete($oldPath);
-                    }
-                    if (Storage::disk('public')->exists($oldPath . '.ovr')) {
-                        Storage::disk('public')->delete($oldPath . '.ovr');
                     }
                 }
 
@@ -134,12 +105,6 @@ class UploadPetaController extends Controller
                 $path = $file->store('peta', 'public');
                 $peta->link_peta   = asset(Storage::url($path));
                 $peta->format_file = $file->getClientOriginalExtension();
-
-                // buat OVR baru
-                $fullPath = storage_path('app/public/' . $path);
-                $gdalPath = "C:\\Program Files\\QGIS 3.36.0\\bin\\gdaladdo.exe";
-                $cmd = "\"$gdalPath\" -r average " . escapeshellarg($fullPath) . " 2 4 8 16";
-                exec($cmd, $output, $returnVar);
             }
 
             $peta->nama_peta   = $request->nama_peta;
@@ -172,14 +137,11 @@ class UploadPetaController extends Controller
                 if (Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->delete($oldPath);
                 }
-                if (Storage::disk('public')->exists($oldPath . '.ovr')) {
-                    Storage::disk('public')->delete($oldPath . '.ovr');
-                }
             }
 
             $peta->delete();
 
-            return response()->json(['message' => 'Data peta & OVR berhasil dihapus'], 200);
+            return response()->json(['message' => 'Data peta berhasil dihapus'], 200);
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Gagal menghapus data',

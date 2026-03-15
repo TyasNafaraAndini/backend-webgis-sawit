@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 class AlatController extends Controller
 {
     public function index()
-    {
-        return response()->json(Alat::all());
-    }
+{
+    return response()->json(
+        Alat::orderBy('id_alat', 'asc')->get()
+    );
+}
+
 
     public function store(Request $request)
     {

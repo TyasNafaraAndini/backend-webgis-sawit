@@ -9,8 +9,11 @@ class TransportasiController extends Controller
 {
     public function index()
     {
-        return response()->json(Transportasi::all());
+        return response()->json(
+            Transportasi::orderBy('id_transportasi', 'asc')->get()
+        );
     }
+
 
     public function store(Request $request)
     {
