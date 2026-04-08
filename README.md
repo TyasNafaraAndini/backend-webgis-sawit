@@ -14,10 +14,6 @@ This project is a web-based Geographic Information System (GIS) designed to mana
 - PostgreSQL
 - GeoJSON
 
-## 📷 Preview
-![Uploading image.png…]()
-
-
 ## ⚙️ Installation
 1. Clone the repository
 2. Run `composer install`
