@@ -15,7 +15,8 @@ This project is a web-based Geographic Information System (GIS) designed to mana
 - GeoJSON
 
 ## 📷 Preview
-(Add screenshots here)
+![Uploading image.png…]()
+
 
 ## ⚙️ Installation
 1. Clone the repository
